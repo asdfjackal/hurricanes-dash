@@ -1,24 +1,29 @@
 import type { NextPage } from 'next';
+import Image from 'next/image';
 import Schedule from '../components/Schedule';
 import Standings from '../components/Standings';
 
 const Home: NextPage = ({ standings, schedule }: any) => {
   return (
-    <div className="bg-white">
-      <div className="mx-auto max-w-7xl py-16 px-4 sm:px-6 lg:py-24 lg:px-8">
-        <div className="mx-auto max-w-3xl text-center">
-          <h2 className="text-3xl font-bold tracking-tight text-gray-900">
-            Carolina Hurricanes
-          </h2>
+    <div>
+      <div>
+        <div className="flex flex-row justify-center py-8 bg-gray-200 text-black h-fit">
+          <Image
+            src="/header.png"
+            alt="Carolina Hurricanes Logo"
+            width={350}
+            height={100}
+            className="relative"
+          />
         </div>
-        <div className="mt-12 space-y-10 sm:grid sm:grid-cols-2 sm:gap-x-6 sm:gap-y-12 sm:space-y-0 lg:gap-x-8">
-          <div className="relative">
-            <div>
+      </div>
+      <div className="bg-gray-200 text-black h-full">
+        <div className="mx-auto max-w-7xl py-4 px-4 sm:px-6 lg:py-8 lg:px-8">
+          <div className="space-y-10 sm:grid sm:grid-cols-2 sm:gap-x-6 sm:gap-y-12 sm:space-y-0 lg:gap-x-8">
+            <div className="relative h-full">
               <Standings standings={standings} />
             </div>
-          </div>
-          <div className="relative">
-            <div>
+            <div className="relative h-full">
               <Schedule schedule={schedule} />
             </div>
           </div>
