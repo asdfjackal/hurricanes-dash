@@ -61,6 +61,7 @@ export async function getStaticProps() {
       standings: teamStandings,
       schedule: filteredSchedule,
     },
+    revalidate: 3600,
   };
 }
 
