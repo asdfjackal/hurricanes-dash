@@ -47,7 +47,7 @@ export async function getStaticProps() {
   const standings = await standingsRes.json();
 
   const scheduleRes = await fetch(
-    'https://statsapi.web.nhl.com/api/v1/schedule?teamId=12&season=20222023'
+    'https://statsapi.web.nhl.com/api/v1/schedule?teamId=12&season=20232024'
   );
   const schedule = await scheduleRes.json();
 
