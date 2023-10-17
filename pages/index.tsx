@@ -1,9 +1,10 @@
 import type { NextPage } from 'next';
 import Image from 'next/image';
+import RecentGame from '../components/RecentGame';
 import Schedule from '../components/Schedule';
 import Standings from '../components/Standings';
 
-const Home: NextPage = ({ standings, schedule }: any) => {
+const Home: NextPage = ({ standings, schedule, recentGame }: any) => {
   return (
     <div>
       <div>
@@ -25,6 +26,9 @@ const Home: NextPage = ({ standings, schedule }: any) => {
             </div>
             <div className="relative h-full">
               <Schedule schedule={schedule} />
+            </div>
+            <div className="relative h-full">
+              <RecentGame recentGame={recentGame} />
             </div>
           </div>
         </div>
@@ -61,10 +65,21 @@ export async function getStaticProps() {
     (date: any) => date.date >= today
   );
 
+  const mostRecentGameId = schedule.dates.filter(
+    (date: any) => date.date < today
+  ).slice(-1)[0].games[0].gamePk;
+
+  const mostRecentGameRes = await fetch(
+    `https://statsapi.web.nhl.com/api/v1/game/${mostRecentGameId}/feed/live`
+  );
+
+  const mostRecentGame = await mostRecentGameRes.json();
+
   return {
     props: {
       standings: teamStandings,
       schedule: filteredSchedule,
+      recentGame: mostRecentGame,
     },
     revalidate: 3600,
   };
