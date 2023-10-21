@@ -8,7 +8,7 @@ const Home: NextPage = ({ standings, schedule, recentGame }: any) => {
   return (
     <div>
       <div>
-        <div className="flex flex-row justify-center py-8 bg-gray-200 text-black h-fit">
+        <div className="flex flex-row justify-center py-8 text-black h-fit">
           <Image
             src="/header.png"
             alt="Carolina Hurricanes Logo"
@@ -20,7 +20,7 @@ const Home: NextPage = ({ standings, schedule, recentGame }: any) => {
       </div>
       <div className="bg-gray-200 text-black h-full">
         <div className="mx-auto max-w-7xl py-4 px-4 sm:px-6 lg:py-8 lg:px-8">
-          <div className="space-y-10 sm:grid sm:grid-cols-2 sm:gap-x-6 sm:gap-y-12 sm:space-y-0 lg:gap-x-8">
+          <div className="space-y-8 sm:grid sm:grid-cols-2 sm:gap-x-8 sm:gap-y-8 sm:space-y-0 lg:gap-x-8">
             <div className="relative h-full">
               <Standings standings={standings} />
             </div>
