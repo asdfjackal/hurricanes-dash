@@ -1,8 +1,19 @@
 import Card from './Card';
 import { ordinal } from '../libs/util';
 
+interface StandingsProps {
+  standings: {
+    divisionRank: number;
+    leagueRank: number;
+    leagueRecord: {
+      wins: number;
+      losses: number;
+      ot: number;
+    };
+  };
+};
 
-function Standings({ standings }: any) {
+function Standings({ standings }: StandingsProps) {
   const lr = standings.leagueRecord;
   return (
     <Card>
@@ -32,3 +43,4 @@ function Standings({ standings }: any) {
 }
 
 export default Standings;
+export type { StandingsProps };

@@ -1,8 +1,8 @@
 import type { GetStaticProps, InferGetStaticPropsType, NextPage } from 'next';
 import Image from 'next/image';
 import RecentGame from '../components/RecentGame';
-import Schedule, { ScheduleProps, ScheduleDate } from '../components/Schedule';
-import Standings from '../components/Standings';
+import Schedule, { ScheduleProps } from '../components/Schedule';
+import Standings, { StandingsProps } from '../components/Standings';
 
 const Home: NextPage<InferGetStaticPropsType<typeof getStaticProps>> = ({ standings, schedule, recentGame }: InferGetStaticPropsType<typeof getStaticProps>) => {
   return (
@@ -22,7 +22,7 @@ const Home: NextPage<InferGetStaticPropsType<typeof getStaticProps>> = ({ standi
         <div className="mx-auto max-w-7xl py-4 px-4 sm:px-6 lg:py-8 lg:px-8">
           <div className="space-y-8 sm:grid sm:grid-cols-2 sm:gap-x-8 sm:gap-y-8 sm:space-y-0 lg:gap-x-8">
             <div className="relative h-full">
-              <Standings standings={standings} />
+              <Standings standings={standings.standings} />
             </div>
             <div className="relative h-full">
               <Schedule schedule={schedule.schedule} />
@@ -68,6 +68,18 @@ export const getStaticProps = (async () => {
 
   const mostRecentGame = await mostRecentGameRes.json();
 
+  const standingsProps: StandingsProps = {
+    standings: {
+      divisionRank: teamStandings.divisionRank,
+      leagueRank: teamStandings.leagueRank,
+      leagueRecord: {
+        wins: teamStandings.leagueRecord.wins,
+        losses: teamStandings.leagueRecord.losses,
+        ot: teamStandings.leagueRecord.ot,
+      },
+    },
+  };
+
   const scheduleProps: ScheduleProps = {
     schedule: {
       dates: filteredSchedule.map((date: any) => {
@@ -85,7 +97,7 @@ export const getStaticProps = (async () => {
 
   return {
     props: {
-      standings: teamStandings,
+      standings: standingsProps,
       schedule: scheduleProps,
       recentGame: mostRecentGame,
     },
