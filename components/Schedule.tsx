@@ -1,20 +1,34 @@
 import Card from './Card';
 
-const Schedule = ({ schedule }: any) => {
+interface ScheduleDate {
+  gameDate: string;
+  teams: {
+    away: string;
+    home: string;
+  }
+}
+
+interface ScheduleProps {
+  schedule: {
+    dates: ScheduleDate[]
+  }
+}
+
+const Schedule = ({ schedule }: ScheduleProps) => {
   return (
     <Card>
       <div className="text-center justify-center">
         <div className="font-bold ext-lg">Next 5 Games</div>
         <ul>
-          {schedule.slice(0, 5).map((date: any) => {
+          {schedule.dates.map((date: any) => {
             const gameDate = Intl.DateTimeFormat(undefined, {
               timeStyle: 'short',
               dateStyle: 'short',
-            }).format(Date.parse(date.games[0].gameDate));
+            }).format(Date.parse(date.gameDate));
             return (
-              <li key={date.date}>
-                {gameDate} - {date.games[0].teams.away.team.name} @{' '}
-                {date.games[0].teams.home.team.name}
+              <li key={date.gameDate}>
+                {gameDate} - {date.teams.away} @{' '}
+                {date.teams.home}
               </li>
             );
           })}
@@ -25,3 +39,4 @@ const Schedule = ({ schedule }: any) => {
 };
 
 export default Schedule;
+export type { ScheduleProps, ScheduleDate };

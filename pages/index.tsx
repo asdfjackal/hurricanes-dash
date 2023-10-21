@@ -1,10 +1,10 @@
-import type { NextPage } from 'next';
+import type { GetStaticProps, InferGetStaticPropsType, NextPage } from 'next';
 import Image from 'next/image';
 import RecentGame from '../components/RecentGame';
-import Schedule from '../components/Schedule';
+import Schedule, { ScheduleProps, ScheduleDate } from '../components/Schedule';
 import Standings from '../components/Standings';
 
-const Home: NextPage = ({ standings, schedule, recentGame }: any) => {
+const Home: NextPage<InferGetStaticPropsType<typeof getStaticProps>> = ({ standings, schedule, recentGame }: InferGetStaticPropsType<typeof getStaticProps>) => {
   return (
     <div>
       <div>
@@ -25,7 +25,7 @@ const Home: NextPage = ({ standings, schedule, recentGame }: any) => {
               <Standings standings={standings} />
             </div>
             <div className="relative h-full">
-              <Schedule schedule={schedule} />
+              <Schedule schedule={schedule.schedule} />
             </div>
             <div className="relative h-full">
               <RecentGame recentGame={recentGame} />
@@ -37,14 +37,7 @@ const Home: NextPage = ({ standings, schedule, recentGame }: any) => {
   );
 };
 
-export async function getStaticProps() {
-  // Call an external API endpoint to get posts.
-  // You can use any data fetching library
-  const statsRes = await fetch(
-    'https://statsapi.web.nhl.com/api/v1/teams/12/stats'
-  );
-  const stats = await statsRes.json();
-
+export const getStaticProps = (async () => {
   const standingsRes = await fetch(
     'https://statsapi.web.nhl.com/api/v1/standings'
   );
@@ -63,7 +56,7 @@ export async function getStaticProps() {
 
   const filteredSchedule = schedule.dates.filter(
     (date: any) => date.date >= today
-  );
+  ).slice(0, 5);
 
   const mostRecentGameId = schedule.dates.filter(
     (date: any) => date.date < today
@@ -75,14 +68,29 @@ export async function getStaticProps() {
 
   const mostRecentGame = await mostRecentGameRes.json();
 
+  const scheduleProps: ScheduleProps = {
+    schedule: {
+      dates: filteredSchedule.map((date: any) => {
+        return {
+          gameDate: date.games[0].gameDate,
+          teams: {
+            away: date.games[0].teams.away.team.name,
+            home: date.games[0].teams.home.team.name,
+          },
+        };
+      })
+    }
+  };
+
+
   return {
     props: {
       standings: teamStandings,
-      schedule: filteredSchedule,
+      schedule: scheduleProps,
       recentGame: mostRecentGame,
     },
     revalidate: 3600,
   };
-}
+});
 
 export default Home;
