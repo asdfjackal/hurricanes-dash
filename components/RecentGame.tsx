@@ -1,28 +1,40 @@
 import Card from './Card';
 import { ordinal } from '../libs/util';
+import React from 'react';
 
-const RecentGame = ({ recentGame }: any) => {
-  const { datetime, teams } = recentGame.gameData;
-  const { boxscore, plays } = recentGame.liveData;
+interface RecentGamePlay {
+  id: number
+  time: string
+  player: string
+  team: string
+  period: number
+}
+
+interface RecentGameProps {
+  recentGame: {
+    datetime: string
+    teams: {
+      away: {
+        name: string
+        goals: number
+        shots: number
+      }
+      home: {
+        name: string
+        goals: number
+        shots: number
+      }
+    }
+    periods: (RecentGamePlay[] | undefined)[]
+  }
+}
+
+const RecentGame = ({ recentGame }: RecentGameProps) => {
+  const { teams, periods } = recentGame;
   const gameDate = Intl.DateTimeFormat(undefined, {
     timeStyle: 'short',
     dateStyle: 'short',
-  }).format(Date.parse(datetime.dateTime));
-
-  const goals = plays.scoringPlays.map((play: any) => {
-    return plays.allPlays[play]
-  });
-
-  const periods = goals.reduce((acc: any, cur: any) => {
-    if (acc[cur.about.period - 1]) {
-      acc[cur.about.period - 1].push(cur)
-    } else {
-      acc[cur.about.period - 1] = [cur]
-    }
-    return acc
-  }, []);
-
-  console.log(periods)
+  }).format(Date.parse(recentGame.datetime));
 
   return (
     <Card>
@@ -33,22 +45,22 @@ const RecentGame = ({ recentGame }: any) => {
           {teams.home.name}
         </p>
         <h3 className="text-2xl text-center font-bold tracking-tight">
-          {boxscore.teams.away.teamStats.teamSkaterStats.goals} - {boxscore.teams.home.teamStats.teamSkaterStats.goals}
+          {teams.away.goals} - {teams.home.goals}
         </h3>
         <p>
-          ({boxscore.teams.away.teamStats.teamSkaterStats.shots} - {boxscore.teams.home.teamStats.teamSkaterStats.shots})
+          ({teams.away.shots} - {teams.home.shots})
         </p>
         {periods.map((period: any, index: number) => (
-          <>
+          <React.Fragment key={index}>
             <p className="font-bold">{ordinal(index + 1)} Period</p>
             <ul>
               {period.map((play: any) => (
-                <li key={play.about.eventidx}>
-                  {play.about.periodTime} - {play.players[0].player.fullName} ({play.team.triCode})
+                <li key={play.id}>
+                  {play.time} - {play.player} ({play.team})
                 </li>
               ))}
             </ul>
-          </>
+          </React.Fragment>
         ))}
       </div>
     </Card>
@@ -56,3 +68,4 @@ const RecentGame = ({ recentGame }: any) => {
 };
 
 export default RecentGame;
+export type { RecentGameProps, RecentGamePlay };

@@ -1,6 +1,6 @@
 import type { GetStaticProps, InferGetStaticPropsType, NextPage } from 'next';
 import Image from 'next/image';
-import RecentGame from '../components/RecentGame';
+import RecentGame, { RecentGamePlay, RecentGameProps } from '../components/RecentGame';
 import Schedule, { ScheduleProps } from '../components/Schedule';
 import Standings, { StandingsProps } from '../components/Standings';
 
@@ -28,7 +28,7 @@ const Home: NextPage<InferGetStaticPropsType<typeof getStaticProps>> = ({ standi
               <Schedule schedule={schedule.schedule} />
             </div>
             <div className="relative h-full">
-              <RecentGame recentGame={recentGame} />
+              <RecentGame recentGame={recentGame.recentGame} />
             </div>
           </div>
         </div>
@@ -94,12 +94,51 @@ export const getStaticProps = (async () => {
     }
   };
 
+  const mostRecentGameGoals: RecentGamePlay[] = mostRecentGame.liveData.plays.scoringPlays.map((play: any) => {
+    const rawPlay = mostRecentGame.liveData.plays.allPlays[play]
+    return {
+      id: rawPlay.about.eventIdx,
+      time: rawPlay.about.periodTime,
+      player: rawPlay.players[0].player.fullName,
+      team: rawPlay.team.triCode,
+      period: rawPlay.about.period,
+    }
+  });
+
+  const mostRecentGamePeriods = mostRecentGameGoals.reduce((acc: any, cur: any) => {
+    if (acc[cur.period - 1]) {
+      acc[cur.period - 1].push(cur)
+    } else {
+      acc[cur.period - 1] = [cur]
+    }
+    return acc
+  }, []);
+
+  const mostRecentGameProps: RecentGameProps = {
+    recentGame: {
+      datetime: mostRecentGame.gameData.datetime.dateTime,
+      teams: {
+        away: {
+          name: mostRecentGame.gameData.teams.away.name,
+          goals: mostRecentGame.liveData.boxscore.teams.away.teamStats.teamSkaterStats.goals,
+          shots: mostRecentGame.liveData.boxscore.teams.away.teamStats.teamSkaterStats.shots,
+        },
+        home: {
+          name: mostRecentGame.gameData.teams.home.name,
+          goals: mostRecentGame.liveData.boxscore.teams.home.teamStats.teamSkaterStats.goals,
+          shots: mostRecentGame.liveData.boxscore.teams.home.teamStats.teamSkaterStats.shots,
+        },
+      },
+      periods: mostRecentGamePeriods,
+    }
+  };
+
 
   return {
     props: {
       standings: standingsProps,
       schedule: scheduleProps,
-      recentGame: mostRecentGame,
+      recentGame: mostRecentGameProps,
     },
     revalidate: 3600,
   };
