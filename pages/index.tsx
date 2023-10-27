@@ -1,6 +1,6 @@
 import type { GetStaticProps, InferGetStaticPropsType, NextPage } from 'next';
 import Image from 'next/image';
-import RecentGame, { RecentGamePlay, RecentGameProps } from '../components/RecentGame';
+import RecentGame, { RecentGamePlay, RecentGamePeriod, RecentGameProps } from '../components/RecentGame';
 import Schedule, { ScheduleProps } from '../components/Schedule';
 import Standings, { StandingsProps } from '../components/Standings';
 
@@ -102,14 +102,18 @@ export const getStaticProps = (async () => {
       player: rawPlay.players[0].player.fullName,
       team: rawPlay.team.triCode,
       period: rawPlay.about.period,
+      periodType: rawPlay.about.periodType,
     }
   });
 
-  const mostRecentGamePeriods = mostRecentGameGoals.reduce((acc: any, cur: any) => {
+  const mostRecentGamePeriods: RecentGamePeriod[] = mostRecentGameGoals.reduce((acc: any, cur: any) => {
     if (acc[cur.period - 1]) {
-      acc[cur.period - 1].push(cur)
+      acc[cur.period - 1].plays.push(cur)
     } else {
-      acc[cur.period - 1] = [cur]
+      acc[cur.period - 1] = {
+        plays: [cur],
+        type: cur.periodType,
+      }
     }
     return acc
   }, []);

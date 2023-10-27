@@ -8,6 +8,12 @@ interface RecentGamePlay {
   player: string
   team: string
   period: number
+  periodType: string
+}
+
+interface RecentGamePeriod {
+  plays: RecentGamePlay[] | null
+  type: String
 }
 
 interface RecentGameProps {
@@ -25,7 +31,15 @@ interface RecentGameProps {
         shots: number
       }
     }
-    periods: (RecentGamePlay[] | undefined)[]
+    periods: RecentGamePeriod[]
+  }
+}
+
+const renderPeriodHeader = (period: RecentGamePeriod, index: number): string => {
+  switch (period.type) {
+    case 'SHOOTOUT': return "Shootout";
+    case 'OVERTIME': return `${index - 2}OT`;
+    default: return `${ordinal(index + 1)} Period`
   }
 }
 
@@ -50,22 +64,27 @@ const RecentGame = ({ recentGame }: RecentGameProps) => {
         <p>
           ({teams.away.shots} - {teams.home.shots})
         </p>
-        {periods.map((period: any, index: number) => (
-          <React.Fragment key={index}>
-            <p className="font-bold">{ordinal(index + 1)} Period</p>
-            <ul>
-              {period.map((play: any) => (
-                <li key={play.id}>
-                  {play.time} - {play.player} ({play.team})
-                </li>
-              ))}
-            </ul>
-          </React.Fragment>
-        ))}
+        <>
+          {periods.map((period: any, index: number) => {
+            return period === null ? null : (
+              <React.Fragment key={index}>
+                <p className="font-bold">{renderPeriodHeader(period, index)}</p>
+                <ul>
+                  {period.plays.map((play: any) => (
+                    <li key={play.id}>
+                      {play.time} - {play.player} ({play.team})
+                    </li>
+                  ))}
+                </ul>
+              </React.Fragment>
+            )
+          }
+          )}
+        </>
       </div>
     </Card>
   );
 };
 
 export default RecentGame;
-export type { RecentGameProps, RecentGamePlay };
+export type { RecentGameProps, RecentGamePlay, RecentGamePeriod };
