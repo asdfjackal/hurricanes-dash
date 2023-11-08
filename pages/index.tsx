@@ -144,7 +144,7 @@ export const getStaticProps = (async () => {
       schedule: scheduleProps,
       recentGame: mostRecentGameProps,
     },
-    revalidate: mostRecentGame.gameData.status.abstractGameState === "Final" ? 3600 : 300,
+    revalidate: 3600,
   };
 });
 
