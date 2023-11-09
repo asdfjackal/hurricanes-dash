@@ -38,74 +38,79 @@ const Home: NextPage<InferGetStaticPropsType<typeof getStaticProps>> = ({ standi
 };
 
 export const getStaticProps = (async () => {
+  const teamInfoRes = await fetch(
+    'https://api.nhle.com/stats/rest/en/team'
+  );
+  const teamInfo = await teamInfoRes.json();
+  const teamMap = new Map();
+  teamInfo.data.forEach((team: any) => {
+    teamMap.set(team.triCode, team.fullName);
+  });
+
   const standingsRes = await fetch(
-    'https://statsapi.web.nhl.com/api/v1/standings'
+    'https://api-web.nhle.com/v1/standings/now'
   );
   const standings = await standingsRes.json();
+  const teamStandings = standings.standings.filter((team: any) => team.teamAbbrev.default === "CAR")[0];
 
   const scheduleRes = await fetch(
-    'https://statsapi.web.nhl.com/api/v1/schedule?teamId=12&season=20232024'
+    'https://api-web.nhle.com/v1/club-schedule-season/CAR/20232024'
   );
   const schedule = await scheduleRes.json();
 
-  const teamStandings = standings.records
-    .filter((division: any) => division.division.id === 18)[0]
-    .teamRecords.filter((team: any) => team.team.id === 12)[0];
-
   const today = new Date().toISOString().slice(0, 10);
 
-  const filteredSchedule = schedule.dates.filter(
-    (date: any) => date.date >= today
+  const filteredSchedule = schedule.games.filter(
+    (game: any) => game.gameDate >= today
   ).slice(0, 5);
 
-  const mostRecentGameId = schedule.dates.filter(
-    (date: any) => date.date < today
-  ).slice(-1)[0].games[0].gamePk;
+  const mostRecentGameDate = schedule.games.filter(
+    (game: any) => game.gameDate < today
+  ).slice(-1)[0].gameDate;
 
-  const mostRecentGameRes = await fetch(
-    `https://statsapi.web.nhl.com/api/v1/game/${mostRecentGameId}/feed/live`
+  const mostRecentGamesRes = await fetch(
+    `https://api-web.nhle.com/v1/score/${mostRecentGameDate}`
   );
 
-  const mostRecentGame = await mostRecentGameRes.json();
+  const mostRecentGames = await mostRecentGamesRes.json();
+  const mostRecentGame = mostRecentGames.games.filter((game: any) => game.homeTeam.abbrev === "CAR" || game.awayTeam.abbrev === "CAR")[0];
 
   const standingsProps: StandingsProps = {
     standings: {
-      divisionRank: teamStandings.divisionRank,
-      leagueRank: teamStandings.leagueRank,
+      divisionRank: teamStandings.divisionSequence,
+      leagueRank: teamStandings.leagueSequence,
       leagueRecord: {
-        wins: teamStandings.leagueRecord.wins,
-        losses: teamStandings.leagueRecord.losses,
-        ot: teamStandings.leagueRecord.ot,
+        wins: teamStandings.wins,
+        losses: teamStandings.losses,
+        ot: teamStandings.otLosses,
       },
     },
   };
 
   const scheduleProps: ScheduleProps = {
     schedule: {
-      dates: filteredSchedule.map((date: any) => {
+      games: filteredSchedule.map((game: any) => {
         return {
-          gameDate: date.games[0].gameDate,
+          gameDate: game.startTimeUTC,
           teams: {
-            away: date.games[0].teams.away.team.name,
-            home: date.games[0].teams.home.team.name,
+            away: teamMap.get(game.awayTeam.abbrev),
+            home: teamMap.get(game.homeTeam.abbrev),
           },
         };
       })
     }
   };
 
-  const mostRecentGameGoals: RecentGamePlay[] = mostRecentGame.liveData.plays.scoringPlays.map((play: any) => {
-    const rawPlay = mostRecentGame.liveData.plays.allPlays[play]
+  const mostRecentGameGoals: RecentGamePlay[] = mostRecentGame.goals.map((goal: any, index: number) => {
     return {
-      id: rawPlay.about.eventIdx,
-      time: rawPlay.about.periodTime,
-      player: rawPlay.players[0].player.fullName,
-      team: rawPlay.team.triCode,
-      period: rawPlay.about.period,
-      periodType: rawPlay.about.periodType,
+      id: index,
+      time: goal.timeInPeriod,
+      player: goal.name.default,
+      team: goal.teamAbbrev,
+      period: goal.period,
+      periodType: goal.periodDescriptor.periodType,
     }
   });
-
   const mostRecentGamePeriods: RecentGamePeriod[] = mostRecentGameGoals.reduce((acc: any, cur: any) => {
     if (acc[cur.period - 1]) {
       acc[cur.period - 1].plays.push(cur)
@@ -120,17 +125,17 @@ export const getStaticProps = (async () => {
 
   const mostRecentGameProps: RecentGameProps = {
     recentGame: {
-      datetime: mostRecentGame.gameData.datetime.dateTime,
+      datetime: mostRecentGame.startTimeUTC,
       teams: {
         away: {
-          name: mostRecentGame.gameData.teams.away.name,
-          goals: mostRecentGame.liveData.boxscore.teams.away.teamStats.teamSkaterStats.goals,
-          shots: mostRecentGame.liveData.boxscore.teams.away.teamStats.teamSkaterStats.shots,
+          name: teamMap.get(mostRecentGame.awayTeam.abbrev),
+          goals: mostRecentGame.awayTeam.score,
+          shots: mostRecentGame.awayTeam.sog,
         },
         home: {
-          name: mostRecentGame.gameData.teams.home.name,
-          goals: mostRecentGame.liveData.boxscore.teams.home.teamStats.teamSkaterStats.goals,
-          shots: mostRecentGame.liveData.boxscore.teams.home.teamStats.teamSkaterStats.shots,
+          name: teamMap.get(mostRecentGame.homeTeam.abbrev),
+          goals: mostRecentGame.homeTeam.score,
+          shots: mostRecentGame.homeTeam.sog,
         },
       },
       periods: mostRecentGamePeriods,

@@ -37,8 +37,8 @@ interface RecentGameProps {
 
 const renderPeriodHeader = (period: RecentGamePeriod, index: number): string => {
   switch (period.type) {
-    case 'SHOOTOUT': return "Shootout";
-    case 'OVERTIME': return `${index - 2}OT`;
+    case 'SO': return "Shootout";
+    case 'OT': return `${index - 2}OT`;
     default: return `${ordinal(index + 1)} Period`
   }
 }

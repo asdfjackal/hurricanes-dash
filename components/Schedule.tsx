@@ -1,6 +1,6 @@
 import Card from './Card';
 
-interface ScheduleDate {
+interface ScheduleGame {
   gameDate: string;
   teams: {
     away: string;
@@ -10,7 +10,7 @@ interface ScheduleDate {
 
 interface ScheduleProps {
   schedule: {
-    dates: ScheduleDate[]
+    games: ScheduleGame[]
   }
 }
 
@@ -20,15 +20,15 @@ const Schedule = ({ schedule }: ScheduleProps) => {
       <div className="text-center justify-center">
         <div className="font-bold ext-lg">Next 5 Games</div>
         <ul>
-          {schedule.dates.map((date: any) => {
+          {schedule.games.map((game: any) => {
             const gameDate = Intl.DateTimeFormat(undefined, {
               timeStyle: 'short',
               dateStyle: 'short',
-            }).format(Date.parse(date.gameDate));
+            }).format(Date.parse(game.gameDate));
             return (
-              <li key={date.gameDate}>
-                {gameDate} - {date.teams.away} @{' '}
-                {date.teams.home}
+              <li key={game.gameDate}>
+                {gameDate} - {game.teams.away} @{' '}
+                {game.teams.home}
               </li>
             );
           })}
@@ -39,4 +39,4 @@ const Schedule = ({ schedule }: ScheduleProps) => {
 };
 
 export default Schedule;
-export type { ScheduleProps, ScheduleDate };
+export type { ScheduleProps, ScheduleGame as ScheduleDate };
