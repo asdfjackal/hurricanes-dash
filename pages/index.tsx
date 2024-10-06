@@ -54,7 +54,7 @@ export const getStaticProps = (async () => {
   const teamStandings = standings.standings.filter((team: any) => team.teamAbbrev.default === "CAR")[0];
 
   const scheduleRes = await fetch(
-    'https://api-web.nhle.com/v1/club-schedule-season/CAR/20232024'
+    'https://api-web.nhle.com/v1/club-schedule-season/CAR/20242025'
   );
   const schedule = await scheduleRes.json();
 
