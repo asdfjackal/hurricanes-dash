@@ -1,10 +1,18 @@
-import type { GetStaticProps, InferGetStaticPropsType, NextPage } from 'next';
-import Image from 'next/image';
-import RecentGame, { RecentGamePlay, RecentGamePeriod, RecentGameProps } from '../components/RecentGame';
-import Schedule, { ScheduleProps } from '../components/Schedule';
-import Standings, { StandingsProps } from '../components/Standings';
+import type { GetStaticProps, InferGetStaticPropsType, NextPage } from "next";
+import Image from "next/image";
+import RecentGame, {
+  RecentGamePlay,
+  RecentGamePeriod,
+  RecentGameProps,
+} from "../components/RecentGame";
+import Schedule, { ScheduleProps } from "../components/Schedule";
+import Standings, { StandingsProps } from "../components/Standings";
 
-const Home: NextPage<InferGetStaticPropsType<typeof getStaticProps>> = ({ standings, schedule, recentGame }: InferGetStaticPropsType<typeof getStaticProps>) => {
+const Home: NextPage<InferGetStaticPropsType<typeof getStaticProps>> = ({
+  standings,
+  schedule,
+  recentGame,
+}: InferGetStaticPropsType<typeof getStaticProps>) => {
   return (
     <div>
       <div>
@@ -37,43 +45,44 @@ const Home: NextPage<InferGetStaticPropsType<typeof getStaticProps>> = ({ standi
   );
 };
 
-export const getStaticProps = (async () => {
-  const teamInfoRes = await fetch(
-    'https://api.nhle.com/stats/rest/en/team'
-  );
+export const getStaticProps = async () => {
+  const teamInfoRes = await fetch("https://api.nhle.com/stats/rest/en/team");
   const teamInfo = await teamInfoRes.json();
   const teamMap = new Map();
   teamInfo.data.forEach((team: any) => {
     teamMap.set(team.triCode, team.fullName);
   });
 
-  const standingsRes = await fetch(
-    'https://api-web.nhle.com/v1/standings/now'
-  );
+  const standingsRes = await fetch("https://api-web.nhle.com/v1/standings/now");
   const standings = await standingsRes.json();
-  const teamStandings = standings.standings.filter((team: any) => team.teamAbbrev.default === "CAR")[0];
+  const teamStandings = standings.standings.filter(
+    (team: any) => team.teamAbbrev.default === "CAR",
+  )[0];
 
   const scheduleRes = await fetch(
-    'https://api-web.nhle.com/v1/club-schedule-season/CAR/20252026'
+    "https://api-web.nhle.com/v1/club-schedule-season/CAR/20262027",
   );
   const schedule = await scheduleRes.json();
 
   const today = new Date().toISOString().slice(0, 10);
 
-  const filteredSchedule = schedule.games.filter(
-    (game: any) => game.gameDate >= today
-  ).slice(0, 5);
+  const filteredSchedule = schedule.games
+    .filter((game: any) => game.gameDate >= today)
+    .slice(0, 5);
 
-  const mostRecentGameDate = schedule.games.filter(
-    (game: any) => game.gameDate < today
-  ).slice(-1)[0].gameDate;
+  const mostRecentGameDate = schedule.games
+    .filter((game: any) => game.gameDate < today)
+    .slice(-1)[0].gameDate;
 
   const mostRecentGamesRes = await fetch(
-    `https://api-web.nhle.com/v1/score/${mostRecentGameDate}`
+    `https://api-web.nhle.com/v1/score/${mostRecentGameDate}`,
   );
 
   const mostRecentGames = await mostRecentGamesRes.json();
-  const mostRecentGame = mostRecentGames.games.filter((game: any) => game.homeTeam.abbrev === "CAR" || game.awayTeam.abbrev === "CAR")[0];
+  const mostRecentGame = mostRecentGames.games.filter(
+    (game: any) =>
+      game.homeTeam.abbrev === "CAR" || game.awayTeam.abbrev === "CAR",
+  )[0];
 
   const standingsProps: StandingsProps = {
     standings: {
@@ -97,31 +106,36 @@ export const getStaticProps = (async () => {
             home: teamMap.get(game.homeTeam.abbrev),
           },
         };
-      })
-    }
+      }),
+    },
   };
 
-  const mostRecentGameGoals: RecentGamePlay[] = mostRecentGame.goals.map((goal: any, index: number) => {
-    return {
-      id: index,
-      time: goal.timeInPeriod,
-      player: goal.name.default,
-      team: goal.teamAbbrev,
-      period: goal.period,
-      periodType: goal.periodDescriptor.periodType,
-    }
-  });
-  const mostRecentGamePeriods: RecentGamePeriod[] = mostRecentGameGoals.reduce((acc: any, cur: any) => {
-    if (acc[cur.period - 1]) {
-      acc[cur.period - 1].plays.push(cur)
-    } else {
-      acc[cur.period - 1] = {
-        plays: [cur],
-        type: cur.periodType,
+  const mostRecentGameGoals: RecentGamePlay[] = mostRecentGame.goals.map(
+    (goal: any, index: number) => {
+      return {
+        id: index,
+        time: goal.timeInPeriod,
+        player: goal.name.default,
+        team: goal.teamAbbrev,
+        period: goal.period,
+        periodType: goal.periodDescriptor.periodType,
+      };
+    },
+  );
+  const mostRecentGamePeriods: RecentGamePeriod[] = mostRecentGameGoals.reduce(
+    (acc: any, cur: any) => {
+      if (acc[cur.period - 1]) {
+        acc[cur.period - 1].plays.push(cur);
+      } else {
+        acc[cur.period - 1] = {
+          plays: [cur],
+          type: cur.periodType,
+        };
       }
-    }
-    return acc
-  }, []);
+      return acc;
+    },
+    [],
+  );
 
   const mostRecentGameProps: RecentGameProps = {
     recentGame: {
@@ -139,9 +153,8 @@ export const getStaticProps = (async () => {
         },
       },
       periods: mostRecentGamePeriods,
-    }
+    },
   };
-
 
   return {
     props: {
@@ -151,6 +164,6 @@ export const getStaticProps = (async () => {
     },
     revalidate: 3600,
   };
-});
+};
 
 export default Home;
